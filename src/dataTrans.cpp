@@ -1,7 +1,7 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <errno.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <cerrno>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -40,22 +40,22 @@ int socketServiceStart() {
         printf("listen socket error: %s(errno: %d)\n", strerror(errno), errno);
         return 0;
     }
-    system("pwd");
+    //system("pwd");    用Clion的话可执行文件会在cmake-build-debug文件夹下
     if ((fp = fopen("../Received/MCU2021.jpg", "ab")) == NULL) {
-        printf("File.\n");
+        printf("File create error.\n");
         close(listenfd);
         exit(1);
     }
 
     printf("======waiting for client's request======\n");
-    while (1) {
+    while (true) {
         struct sockaddr_in client_addr;
         socklen_t size = sizeof(client_addr);
         if ((connfd = accept(listenfd, (struct sockaddr *) &client_addr, &size)) == -1) {
             printf("accept socket error: %s(errno: %d)", strerror(errno), errno);
             continue;
         }
-        while (1) {
+        while (true) {
             n = read(connfd, buff, MAXLINE);
             if (n == 0)
                 break;
