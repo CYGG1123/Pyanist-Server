@@ -7,12 +7,12 @@
 #include <netinet/in.h>
 #include <unistd.h>
 
-#define MAXLINE 4096
+#define MAXLINE 8192
 
 int socketServiceStart() {
     int listenfd, connfd;
     struct sockaddr_in servaddr;
-    char buff[4096];
+    char buff[8192];
     FILE *fp;
     int n;
 
@@ -55,6 +55,7 @@ int socketServiceStart() {
             printf("accept socket error: %s(errno: %d)", strerror(errno), errno);
             continue;
         }
+
         while (true) {
             n = read(connfd, buff, MAXLINE);
             if (n == 0)
