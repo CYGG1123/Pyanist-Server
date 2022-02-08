@@ -1,72 +1,47 @@
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <cerrno>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 #include <unistd.h>
+#include <iostream>
+#include "getTime.h"
 
-#define MAXLINE 8192
+using namespace std;
 
-int socketServiceStart() {
-    int listenfd, connfd;
-    struct sockaddr_in servaddr;
-    char buff[8192];
-    FILE *fp;
-    int n;
-
-    if ((listenfd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
-        printf("create socket error: %s(errno: %d)\n", strerror(errno), errno);
-        return 0;
-    }
-    printf("----init socket----\n");
-
-    memset(&servaddr, 0, sizeof(servaddr));
-    servaddr.sin_family = AF_INET;
-    servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
-    servaddr.sin_port = htons(6666);
-    //设置端口可重用
-    int contain;
-    setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &contain, sizeof(int));
-
-    if (bind(listenfd, (struct sockaddr *) &servaddr, sizeof(servaddr)) == -1) {
-        printf("bind socket error: %s(errno: %d)\n", strerror(errno), errno);
-        return 0;
-    }
-    printf("----bind sucess----\n");
-
-    if (listen(listenfd, 10) == -1) {
-        printf("listen socket error: %s(errno: %d)\n", strerror(errno), errno);
-        return 0;
-    }
-    //system("pwd");    用Clion的话可执行文件会在cmake-build-debug文件夹下
-    if ((fp = fopen("../Received/MCU2021.jpg", "ab")) == NULL) {
-        printf("File create error.\n");
-        close(listenfd);
-        exit(1);
+void *receiveMsg(void *sock) {
+    system("pwd");
+    FILE *fp = fopen(("../Received/" + getCurrentTime() + ".jpg").c_str(), "wb");
+    if (fp == NULL) {
+        cout << "file not found" << endl;
     }
 
-    printf("======waiting for client's request======\n");
-    while (true) {
-        struct sockaddr_in client_addr;
-        socklen_t size = sizeof(client_addr);
-        if ((connfd = accept(listenfd, (struct sockaddr *) &client_addr, &size)) == -1) {
-            printf("accept socket error: %s(errno: %d)", strerror(errno), errno);
+    char buffer[4096];
+    int *socket = (int *) sock;
+    while (1) {
+        memset(buffer, 0, sizeof(buffer));
+        ssize_t byteCount = recv(*socket, buffer, 4096, 0);
+        if (byteCount <= 0) {
             continue;
         }
-
-        while (true) {
-            n = read(connfd, buff, MAXLINE);
-            if (n == 0)
-                break;
-            fwrite(buff, 1, n, fp);
-        }
-        buff[n] = '\0';
-        printf("recv msg from client: %s\n", buff);
-        close(connfd);
-        fclose(fp);
+        fwrite(buffer, 1, byteCount, fp);
     }
-    close(listenfd);
-    return 0;
+}
+
+void *sendMsg(void *sock) {
+    while (1) {
+        usleep(500);
+        char buffer[4096];
+        memset(buffer, 0, sizeof(buffer));
+        cin >> buffer;
+        if (strlen(buffer) < 0) {
+            continue;
+        }
+        ssize_t byteCount = send(*(int *) sock, buffer, 4096, 0);
+        if (byteCount < 0) {
+            cout << "send failed" << endl;
+        }
+    }
 }

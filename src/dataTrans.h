@@ -5,6 +5,8 @@
 #ifndef SERVER_DATATRANS_H
 #define SERVER_DATATRANS_H
 
-[[noreturn]] [[noreturn]] int socketServiceStart();
+void *sendMsg(void *sock);
+
+void *receiveMsg(void *sock);
 
 #endif //SERVER_DATATRANS_H
