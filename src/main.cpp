@@ -10,11 +10,10 @@
 #include <iostream>
 #include "dataTrans.h"
 #include "getTime.h"
-
+#include "executeCMD.h"
 using namespace std;
 
-int main()
-{
+int main() {
     cout << getCurrentTime() << ": Server is running..." << endl;
     pthread_t sendPthread;
     pthread_t recvPthread;
@@ -32,7 +31,7 @@ int main()
     servAddr.sin_addr.s_addr = htonl(INADDR_ANY); //让系统自动填充地址，不用自己去查明本机的地址是多少
     servAddr.sin_port = htons(servPort);
 
-    if (::bind(servSock, (struct sockaddr *)&servAddr, sizeof(struct sockaddr_in)) < 0) //绑定端口
+    if (::bind(servSock, (struct sockaddr *) &servAddr, sizeof(struct sockaddr_in)) < 0) //绑定端口
     {
         cout << "bind error" << endl;
     }
@@ -48,26 +47,21 @@ int main()
 
     struct sockaddr_in clntAddr;
     socklen_t clntAddrLen = sizeof(clntAddr);
-    int clntSock = accept(servSock, (struct sockaddr *)&clntAddr, &clntAddrLen);
+    int clntSock = accept(servSock, (struct sockaddr *) &clntAddr, &clntAddrLen);
 
-    if (clntSock < 0)
-    {
+    if (clntSock < 0) {
         cout << "accept error" << endl;
     }
 
     char clntName[1024];
-    if (inet_ntop(AF_INET, &clntAddr.sin_addr.s_addr, clntName, sizeof(clntName)) != NULL)
-    {
+    if (inet_ntop(AF_INET, &clntAddr.sin_addr.s_addr, clntName, sizeof(clntName)) != NULL) {
         cout << "Handling client: " << clntName << " port: " << ntohs(clntAddr.sin_port) << endl;
-        ;
-    }
-    else
-    {
+    } else {
         cout << "client address get failed " << endl;
     }
 
-    pthread_create(&sendPthread, NULL, sendMsg, &clntSock);
+    //pthread_create(&sendPthread, NULL, sendMsg, &clntSock);
     pthread_create(&recvPthread, NULL, receiveMsg, &clntSock);
-    pthread_join(sendPthread, 0);
+    //pthread_join(sendPthread, 0);
     pthread_join(recvPthread, 0);
 }

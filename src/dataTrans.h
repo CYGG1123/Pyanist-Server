@@ -14,6 +14,7 @@
 #include <unistd.h>
 #include <iostream>
 #include "getTime.h"
+#include "imageProcess.h"
 #include <string>
 void *sendMsg(void *sock);
 
